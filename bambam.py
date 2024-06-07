@@ -65,6 +65,11 @@ class ResourceLoadException(BambamException):
 
 
 def init_joysticks():
+    """
+    Initializes all joysticks available on the system and assigns them unique
+    identifiers for further use.
+
+    """
     pygame.joystick.init()
     """
     Initialize all joysticks.
@@ -81,7 +86,20 @@ class Bambam:
     @classmethod
     def get_color(cls):
         """
-        Return bright color varying over time.
+        Calculates and returns a color value based on a specified hue value,
+        saturation, and value, all between 0 and 100.
+
+        Args:
+            cls (int): 360-degree hue angle of the generated color.
+
+        Returns:
+            pygame.Color: a white color with an hsva value of (hue, 100, 100, 100).
+            
+            		- `hue`: The angle of the color in degrees, ranging from 0 to 360.
+            		- `sat`: The brightness of the color, set to 100.
+            		- `val`: The value of the color, set to 100.
+            		- `alpha`: The transparency of the color, set to 100.
+
         """
         hue = pygame.time.get_ticks() / 50 % 360
         color = Color('white')
@@ -91,7 +109,33 @@ class Bambam:
     @classmethod
     def load_image(cls, fullname):
         """
-        Load image/, handling setting of the transparency color key.
+        Loads an image from a file, resizes it to fit within a maximum width and
+        height, and returns the scaled image.
+
+        Args:
+            cls (object/instance of `ResourceClass` class.): class where the
+                function is defined and provides access to the member variables
+                of that class.
+                
+                		- `IMAGE_MAX_WIDTH`: This is an attribute of `cls` that represents
+                the maximum width allowed for the image after resizing. It is
+                specified as a plain value without any units.
+                		- `IMAGE_MAX_HEIGHT`: This is another attribute of `cls` that
+                represents the maximum height allowed for the image after resizing.
+                It is specified as a plain value without any units.
+            fullname (str): name of the image file to be loaded.
+
+        Returns:
+            pygame.Surface: a scaled down version of the input image that fits
+            within the specified dimensions.
+            
+            		- `image`: A pygame image object containing the loaded image.
+            		- `size_x`, `size_y`: The dimensions of the loaded image in pixels.
+            		- `new_size_x`, `new_size_y`: The resized dimensions of the image
+            if it was too large to fit within the specified maximum size.
+            		- `raise ResourceLoadException`: An exception raised if the image
+            could not be loaded or resized due to errors.
+
         """
         try:
             image = pygame.image.load(fullname)
@@ -116,7 +160,24 @@ class Bambam:
     @classmethod
     def load_sound(cls, name):
         """
-        Load sound file in "data/".
+        Loads a sound from a given name and returns it as an instance of
+        `pygame.mixer.Sound`. If the sound cannot be loaded, a `ResourceLoadException`
+        is raised with the name of the sound and the error message.
+
+        Args:
+            cls ("ResourceLoadException" type object.): class `NoneSound` in this
+                function.
+                
+                		- The `play` method is a non-callable method that simply does nothing.
+                		- The `NoneSound` instance is returned if no error occurs during
+                initialization or sound loading.
+                		- If there's an error loading the sound, the `ResourceLoadException`
+                is raised with the sound name and error message as arguments.
+            name (str): name of the sound to be played.
+
+        Returns:
+            None: a `ResourceLoadException` object if the sound file cannot be loaded.
+
         """
         class NoneSound:
             def play(self): pass
@@ -130,7 +191,42 @@ class Bambam:
     @classmethod
     def load_items(cls, lst, blacklist, load_function, failure_message):
         """
-        Runs load_function on elements of lst unless they are blacklisted.
+        Takes a list of file paths as input, applies blacklist filtering, and then
+        tries to load each remaining item using a provided load function. If all
+        items pass loading, the function returns the loaded results, otherwise it
+        raises an exception.
+
+        Args:
+            cls ('Exception'.): Bambam exception class, which is used to raise an
+                exception with a custom message if any errors occurred during the
+                load process.
+                
+                		- `lst`: A list of strings representing item paths.
+                		- `blacklist`: A list of wildcard patterns used to skip blacklisted
+                items.
+                		- `result`: A list of loaded items (can be `None`).
+                		- `errors_encountered`: A boolean indicating if any loading
+                errors occurred.
+                		- `failure_message`: A message describing the error if
+                `errors_encountered` is True.
+            lst (list): list of file paths to be scanned for loading into the
+                `result` variable.
+            blacklist (list): list of image or sound file paths that should be
+                excluded from being processed by the `load_function()` method.
+            load_function (exception object.): image or sound file path that is
+                to be loaded into the function.
+                
+                	1/ `load_function`: This is the function that is loaded from disk.
+                Its properties or attributes are not explicitly mentioned in the
+                given code snippet. However, it could potentially have a return
+                value, parameters, and/or other attributes based on its implementation.
+            failure_message (str): message to be displayed if any loading errors
+                occur during the execution of the function.
+
+        Returns:
+            list: a list of loaded items or an error message if any blacklisted
+            items were encountered.
+
         """
         result = []
         errors_encountered = False
@@ -149,6 +245,11 @@ class Bambam:
         return result
 
     def __init__(self):
+        """
+        Sets initial values for attributes including `colors`, `data_dirs`, `args`,
+        `images`, `sounds`, and configures displays and audio settings.
+
+        """
         self.colors = ((0, 0, 255), (255, 0, 0), (255, 255, 0),
                        (255, 0, 128), (0, 0, 128), (0, 255, 0),
                        (255, 128, 0), (255, 0, 255), (0, 255, 255)
@@ -169,7 +270,14 @@ class Bambam:
 
     def draw_dot(self):
         """
-        draw filled circle at mouse position.
+        1) retrieves the current mouse position using Pygame's `mouse.get_pos()`
+        function, then 2) creates a white circle with a radius equal to the
+        difference between the mouse position and the circle center (using Pygame's
+        `Surface` class and `draw.circle()` method), and finally 3) sets the color
+        key of the circle to 0 using `set_colorkey()` method to make it invisible
+        when the screen is drawn, and blits the circle at the correct position
+        using `blit()` method.
+
         """
         r = 30
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -182,7 +290,26 @@ class Bambam:
 
     def process_keypress(self, event):
         """
-        Processes events from keyboard or joystick.
+        Processes keyboard input, checking for command words and performing actions
+        based on their presence in the sequence. It also randomizes sound playback
+        and displays images based on the key press.
+
+        Args:
+            event (`pygame.Event` object.): Python event object passed from the
+                event loop and provides information about the current keyboard or
+                mouse event, such as the type of event, the key code, and any
+                additional metadata.
+                
+                		- `type`: The type of event that occurred (either `KEYDOWN` or
+                `QUIT`).
+                		- `unicode`: The Unicode value of the key pressed (if `type ==
+                KEYDOWN`).
+                		- `key`: The key code of the pressed key (if `type == KEYDOWN).
+                
+                	The `event.unicode` property is a string that contains the Unicode
+                value of the key pressed, while `event.key` is an integer that
+                represents the key code of the pressed key.
+
         """
         # check for command words
         if event.type == KEYDOWN and event.unicode.isalpha():
@@ -220,7 +347,9 @@ class Bambam:
 
     def print_image(self):
         """
-        Prints an image at a random location.
+        Generates a random image from an array of images and displays it on the
+        screen at a random location within its bounds.
+
         """
         img = self.images[random.randint(0, len(self.images) - 1)]
         w = random.randint(0, self.display_width - img.get_width())
@@ -229,7 +358,12 @@ class Bambam:
 
     def print_letter(self, char):
         """
-        Prints a letter at a random location.
+        Render a single letter on the screen using Pygame font and center it
+        horizontally and vertically within the display boundaries.
+
+        Args:
+            char (str): 1-pixel wide image to be displayed as a random character.
+
         """
         font = pygame.font.Font(None, 256)
         if self.args.uppercase:
@@ -245,6 +379,39 @@ class Bambam:
         self.screen.blit(text, text_pos)
 
     def glob_dir(self, path, extensions):
+        """
+        Iterates over the files and directories within a given path, extending a
+        list of file paths based on their extensions.
+
+        Args:
+            path (os. Path): directory or folder where the search for files will
+                be conducted.
+                
+                		- `os.listdir(path)`: Returns a list of filenames in the directory
+                `path`.
+                		- `os.path.join(path, file_name)`: Constructs a new path by
+                joining two paths. The first argument is the directory `path`, and
+                the second argument is the filename `file_name`.
+                		- `if os.path.isdir(path_name):`: Checks if the path `path_name`
+                exists and is a directory.
+                		- `files.extend(self.glob_dir(path_name, extensions))`: Appends
+                the files found in the subdirectory `path_name` to the list of
+                files `files`, using the `glob_dir` function.
+                		- `else:`: Executed if the previous `if` statement is false.
+                		- `for ext in extensions:`: Iterates over a list of file extensions
+                `extensions`.
+                		- `if path_name.lower().endswith(ext):`: Checks if the filename
+                `path_name` ends with the specified extension `ext`, ignoring case.
+                		- `files.append(path_name)`: Adds the matching files to the list
+                `files`.
+                		- `break`: Exits the inner loop.
+            extensions (list): list of file extensions that should be considered
+                for the directory or file search.
+
+        Returns:
+            list: a list of file paths that match the specified extension(s).
+
+        """
         files = []
         for file_name in os.listdir(path):
             path_name = os.path.join(path, file_name)
@@ -260,9 +427,20 @@ class Bambam:
 
     def glob_data(self, extensions):
         """
-        Search for files ending with any of the provided extensions. Eg:
-        extensions = ['.abc'] will be similar to `ls *.abc` in the configured
-        data dirs. Matching will be case-insensitive.
+        Iterates over a list of directory paths (`data_dirs`) and for each path
+        it recursively enumerates all files within that directory and its
+        subdirectories using the `glob` module, and then adds those files to a
+        list called `file_list`.
+
+        Args:
+            extensions (list): lowercase version of the file extensions that the
+                `glob_dir()` method should search for within each data directory
+                specified in the `data_dirs` variable.
+
+        Returns:
+            list: a list of files in the specified data directories with file names
+            matching the provided extensions.
+
         """
         extensions = [x.lower() for x in extensions]
         file_list = []
@@ -272,6 +450,15 @@ class Bambam:
 
     def _prepare_background(self):
         # noinspection PyArgumentList
+        """
+        Creates a black background Surface for the main game loop using `pygame.Surface`,
+        and sets the background color to either dark or light based on the `args`.
+        It also creates a font object for displaying command messages at the top
+        of the screen using `pygame.font.SysFont`, renders the message with the
+        specified font and color, and blits it to the upper right corner of the
+        background Surface.
+
+        """
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.background_color = (0, 0, 0) if self.args.dark else (250, 250, 250)
         self.background.fill(self.background_color)
@@ -288,6 +475,11 @@ class Bambam:
         self.background.blit(caption_label, caption_rect)
 
     def _prepare_wayland_warning(self):
+        """
+        Displays a message on top of the game window with the warning text when
+        Wayland is detected as the display server.
+
+        """
         caption_font = pygame.font.SysFont(None, 80)
         for i, msg in enumerate([
                 _("Error: Wayland display detected."),
@@ -306,7 +498,10 @@ class Bambam:
 
     def run(self):
         """
-        Main application entry point.
+        Initializes the Python Pygame library, sets up a window and caption, loads
+        sounds and images, and defines event handling for keypresses, mouse motion,
+        and button presses/releases.
+
         """
         program_base = os.path.dirname(os.path.realpath(sys.argv[0]))
 
@@ -420,6 +615,12 @@ class Bambam:
 
 
 def main():
+    """
+    Attempts to initiate a `Bambam` instance and run it, but if any BambamException
+    is thrown, it will print the exception message and exit the program with an
+    error code of 1.
+
+    """
     gettext.install('bambam')
     try:
         bambam = Bambam()
